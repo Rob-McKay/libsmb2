@@ -705,7 +705,11 @@ smb2_service_fd(struct smb2_context *smb2, int fd, int revents)
 
         if (revents & POLLERR) {
                 int err = 0;
+                #if defined(BROKEN_GETSOCKOPT)
+                int err_size = sizeof(err);
+                #else
                 socklen_t err_size = sizeof(err);
+                #endif
 
                 if (smb2->fd == -1 && smb2->next_addrinfo != NULL) {
                         /* Connecting fd failed, try to connect to the next addr */
@@ -745,7 +749,11 @@ smb2_service_fd(struct smb2_context *smb2, int fd, int revents)
 
         if (smb2->fd == -1 && revents & POLLOUT) {
                 int err = 0;
+                #if defined(BROKEN_GETSOCKOPT)
+                int err_size = sizeof(err);
+                #else
                 socklen_t err_size = sizeof(err);
+                #endif
 
                 if (getsockopt(fd, SOL_SOCKET, SO_ERROR,
                                (char *)&err, &err_size) != 0 || err != 0) {
@@ -824,6 +832,9 @@ set_nonblocking(t_socket fd)
 #if defined(WIN32)
         unsigned long opt = 1;
         ioctlsocket(fd, FIONBIO, &opt);
+#elif defined(__riscos)
+        unsigned long opt = 1;
+        ioctl(fd, FIONBIO, &opt);
 #else
         unsigned v;
         v = fcntl(fd, F_GETFL, 0);

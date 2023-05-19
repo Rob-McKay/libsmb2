@@ -41,7 +41,7 @@ long long int be64toh(long long int x);
 #define gethostbyname(a) lwip_gethostbyname(a)
 #define close(a) lwip_close(a)
 
-#define getlogin_r(a,b) ENXIO
+#define getlogin_r(a,b) ENXIO  c
 
 #define POLLIN      0x0001    /* There is data to read */
 #define POLLPRI     0x0002    /* There is urgent data to read */
@@ -230,6 +230,13 @@ typedef uint32_t UWORD32;
 
 long long int be64toh(long long int x);
 
+int asprintf(char **strp, const char *fmt, ...);
+
+#define getlogin_r(a,b) ENXIO
+
+#define srandom srand
+#define random rand
+
 #define POLLIN      0x0001    /* There is data to read */
 #define POLLPRI     0x0002    /* There is urgent data to read */
 #define POLLOUT     0x0004    /* Writing now will not block */
@@ -243,6 +250,23 @@ struct pollfd {
 };
 
 int poll(struct pollfd *fds, unsigned int nfds, int timo);
+
+int asprintf(char **strp, const char *fmt, ...);
+
+/* open-only flags */
+#define O_RDONLY        0x0000          /* open for reading only */
+#define O_WRONLY        0x0001          /* open for writing only */
+#define O_RDWR          0x0002          /* open for reading and writing */
+#define O_ACCMODE       0x0003          /* mask for above modes */
+
+#define O_SHLOCK        0x00000010      /* open with shared file lock */
+#define O_EXLOCK        0x00000020      /* open with exclusive file lock */
+#define O_NOFOLLOW      0x00000100      /* don't follow symlinks */
+#define O_CREAT         0x00000200      /* create if nonexistant */
+#define O_TRUNC         0x00000400      /* truncate to zero length */
+#define O_EXCL          0x00000800      /* error if already exists */
+
+#define ENODATA         96              /* No message available on STREAM */
 
 #endif /* __riscos */
 

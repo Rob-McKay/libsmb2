@@ -3,7 +3,7 @@
 /*
 ** Function: hmac_md5
 */
-#if !defined(_MSC_VER) && !defined(PS2_EE_PLATFORM) && !defined(PS2_IOP_PLATFORM) && !defined(PICO_PLATFORM)
+#if !defined(_MSC_VER) && !defined(PS2_EE_PLATFORM) && !defined(PS2_IOP_PLATFORM) && !defined(PICO_PLATFORM) && !defined(__riscos)
 #include <strings.h>
 #endif
 

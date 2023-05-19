@@ -32,10 +32,12 @@
 #   define le16toh(x) (x)
 
 #   define be32toh(x) ntohl(x)
-#   define htobe32(x) ntonl(x)
+#   define htobe32(x) htonl(x)
 #   define htole32(x) (x)
 #   define le32toh(x) (x)
 
+#   define htole64(x) (x)
+#   define le64toh(x) (x)
 
 #elif defined(PICO_PLATFORM)
 
