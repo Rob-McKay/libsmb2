@@ -23,6 +23,20 @@
 
 #	include <endian.h>
 
+#elif defined(__riscos)
+#include <machine/endian.h>
+
+#   define be16toh(x) ntohs(x)
+#   define htobe16(x) htons(x)
+#   define htole16(x) (x)
+#   define le16toh(x) (x)
+
+#   define be32toh(x) ntohl(x)
+#   define htobe32(x) ntonl(x)
+#   define htole32(x) (x)
+#   define le32toh(x) (x)
+
+
 #elif defined(PICO_PLATFORM)
 
 #   include <machine/endian.h>

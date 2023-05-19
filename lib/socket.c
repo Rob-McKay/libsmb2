@@ -74,7 +74,7 @@
 #include "portable-endian.h"
 #include <errno.h>
 
-#if !defined(PS2_IOP_PLATFORM)
+#if !defined(PS2_IOP_PLATFORM) && !defined(__riscos)
 #include <fcntl.h>
 #endif
 
@@ -210,7 +210,7 @@ smb2_write_to_socket(struct smb2_context *smb2)
                 if (pdu->seal) {
                         niov = 2;
                         spl = pdu->crypt_len;
-                        iov[1].iov_base = pdu->crypt;
+                        iov[1].iov_base = (void*)pdu->crypt;
                         iov[1].iov_len  = pdu->crypt_len;
                 } else {
                         /* Copy all the vectors from all PDUs in the
@@ -220,7 +220,7 @@ smb2_write_to_socket(struct smb2_context *smb2)
                              tmp_pdu = tmp_pdu->next_compound) {
                                 for (i = 0; i < tmp_pdu->out.niov;
                                      i++, niov++) {
-                                        iov[niov].iov_base = tmp_pdu->out.iov[i].buf;
+                                        iov[niov].iov_base = (void*)tmp_pdu->out.iov[i].buf;
                                         iov[niov].iov_len = tmp_pdu->out.iov[i].len;
                                         spl += tmp_pdu->out.iov[i].len;
                                 }
@@ -229,7 +229,7 @@ smb2_write_to_socket(struct smb2_context *smb2)
 
                 /* Add the SPL vector as the first vector */
                 tmp_spl = htobe32(spl);
-                iov[0].iov_base = &tmp_spl;
+                iov[0].iov_base = (void*)&tmp_spl;
                 iov[0].iov_len = SMB2_SPL_SIZE;
 
                 tmpiov = iov;
@@ -301,7 +301,7 @@ read_more_data:
         /* Copy all the current vectors to our work vector */
         niov = smb2->in.niov;
         for (i = 0; i < niov; i++) {
-                iov[i].iov_base = smb2->in.iov[i].buf;
+                iov[i].iov_base = (void*)smb2->in.iov[i].buf;
                 iov[i].iov_len = smb2->in.iov[i].len;
         }
         tmpiov = iov;
@@ -1025,7 +1025,7 @@ smb2_connect_async(struct smb2_context *smb2, const char *server,
                 {
                         smb2_set_error(smb2, "Winsock was not initialized. "
                                 "Please call WSAStartup().");
-                        return -WSANOTINITIALISED; 
+                        return -WSANOTINITIALISED;
                 }
                 else
 #endif

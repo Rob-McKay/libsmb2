@@ -23,7 +23,7 @@
 #include "config.h"
 #endif
 
-#if defined(PS2_EE_PLATFORM) || defined(PS3_PPU_PLATFORM) || defined(ESP_PLATFORM) || defined(PICO_PLATFORM) || defined(__APPLE__) || defined(PS4_PLATFORM)
+#if defined(PS2_EE_PLATFORM) || defined(PS3_PPU_PLATFORM) || defined(ESP_PLATFORM) || defined(PICO_PLATFORM) || defined(__APPLE__) || defined(PS4_PLATFORM) || defined(__riscos)
 /* We need this for time_t */
 #include <time.h>
 #endif
@@ -66,7 +66,7 @@ struct smb2_sync {
         uint32_t process_id;
         uint32_t tree_id;
 };
-        
+
 struct smb2_header {
         uint8_t protocol_id[4];
         uint16_t struct_size;
@@ -89,7 +89,7 @@ struct smb2_header {
  * normal SMB2/3 :
  * 1: SMB2_RECV_SPL        SPL
  * 2: SMB2_RECV_HEADER     SMB2 Header
- * 3: SMB2_RECV_FIXED      The fixed part of the payload. 
+ * 3: SMB2_RECV_FIXED      The fixed part of the payload.
  * 4: SMB2_RECV_VARIABLE   Optional variable part of the payload.
  * 5: SMB2_RECV_PAD        Optional padding
  *
@@ -163,8 +163,8 @@ struct smb2_context {
         uint8_t *session_key;
         uint8_t session_key_size;
 
-        uint8_t seal:1;
-        uint8_t sign:1;
+        bool seal:1;
+        bool sign:1;
         uint8_t signing_key[SMB2_KEY_SIZE];
         uint8_t serverin_key[SMB2_KEY_SIZE];
         uint8_t serverout_key[SMB2_KEY_SIZE];
@@ -263,7 +263,7 @@ struct smb2_pdu {
         uint8_t file_info_class;
 
         /* For encrypted PDUs */
-        uint8_t seal:1;
+        bool seal:1;
         uint32_t crypt_len;
         unsigned char *crypt;
         time_t timeout;
@@ -279,7 +279,7 @@ struct utf16 {
  * the utf16 string.
  */
 struct utf16 *utf8_to_utf16(const char *utf8);
-        
+
 /* Returns a string converted to UTF8 format. Use free() to release
  * the utf8 string.
  */
@@ -316,7 +316,7 @@ int smb2_process_payload_fixed(struct smb2_context *smb2,
 int smb2_process_payload_variable(struct smb2_context *smb2,
                                   struct smb2_pdu *pdu);
 int smb2_get_fixed_size(struct smb2_context *smb2, struct smb2_pdu *pdu);
-        
+
 struct smb2_pdu *smb2_find_pdu(struct smb2_context *smb2, uint64_t message_id);
 void smb2_free_iovector(struct smb2_context *smb2, struct smb2_io_vectors *v);
 
@@ -324,7 +324,7 @@ int smb2_decode_header(struct smb2_context *smb2, struct smb2_iovec *iov,
                        struct smb2_header *hdr);
 int smb2_calc_signature(struct smb2_context *smb2, uint8_t *signature,
                         struct smb2_iovec *iov, int niov);
-        
+
 int smb2_set_uint8(struct smb2_iovec *iov, int offset, uint8_t value);
 int smb2_set_uint16(struct smb2_iovec *iov, int offset, uint16_t value);
 int smb2_set_uint32(struct smb2_iovec *iov, int offset, uint32_t value);
