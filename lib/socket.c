@@ -1030,7 +1030,12 @@ smb2_connect_async(struct smb2_context *smb2, const char *server,
         /* is it a hostname ? */
         err = getaddrinfo(host, port, NULL, &smb2->addrinfos);
         if (err != 0) {
-                free(addr);
+           struct hostent *entry = gethostbyname(host);
+           if (entry!= NULL) {
+              printf("Found entry %d.%d.%d.%d\r\n", entry->h_addr_list[0][0], entry->h_addr_list[0][1], entry->h_addr_list[0][2], entry->h_addr_list[0][3]);
+           }
+           struct servent *serv = getservbyname(port, NULL);
+
 #ifdef _WINDOWS
                 if (err == WSANOTINITIALISED)
                 {
@@ -1041,9 +1046,19 @@ smb2_connect_async(struct smb2_context *smb2, const char *server,
                 else
 #endif
                 {
+                     if (entry != NULL && serv == NULL) {
+                        smb2_set_error(smb2, "Invalid port:%s  "
+                        "Cannot resolve into IPv4/v6.", port);
+                  }
+                  else
+                  {
                         smb2_set_error(smb2, "Invalid address:%s  "
-                                "Can not resolv into IPv4/v6.", server);
+                        "Can not resolv into IPv4/v6.", server);
+                  }
                 }
+
+                free(addr);
+
                 switch (err) {
                     case EAI_AGAIN:
                         return -EAGAIN;

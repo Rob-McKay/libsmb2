@@ -233,6 +233,16 @@ struct sockaddr_storage {
 
 typedef uint32_t UWORD32;
 
+//#define getaddrinfo(add, port, hints, res) riscos_getaddrinfo(add, port, hints, res)
+//#define freeaddrinfo(res) riscos_freeaddrinfo(res)
+
+//int riscos_getaddrinfo(const char *node, const char*service,
+//                const struct addrinfo *hints,
+//                struct addrinfo **res);
+
+//void riscos_freeaddrinfo(struct addrinfo *res);
+
+
 long long int be64toh(long long int x);
 
 int asprintf(char **strp, const char *fmt, ...);
@@ -274,6 +284,7 @@ long long int htobe64(long long int x);
 #define O_EXCL          0x00000800      /* error if already exists */
 
 #define ENODATA         96              /* No message available on STREAM */
+
 
 #endif /* __riscos */
 

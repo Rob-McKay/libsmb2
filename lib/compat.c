@@ -222,6 +222,58 @@ void smb2_freeaddrinfo(struct addrinfo *res)
 
 #endif /* PS3_PPU_PLATFORM */
 
+#if defined __riscos
+
+#undef getaddrinfo
+#undef freeaddrinfo
+
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <netdb.h>
+
+int riscos_getaddrinfo(const char *node, const char*service,
+                const struct addrinfo *hints,
+                struct addrinfo **res)
+{
+        struct sockaddr_in *sin;
+
+        sin = malloc(sizeof(struct sockaddr_in));
+        sin->sin_len = sizeof(struct sockaddr_in);
+        sin->sin_family=AF_INET;
+
+        struct hostent *entry = gethostbyname(node);
+        if (entry!= NULL) {
+          printf("Found entry %d.%d.%d.%d\r\n", entry->h_addr_list[0][0], entry->h_addr_list[0][1], entry->h_addr_list[0][2], entry->h_addr_list[0][3]);
+          sin->sin_addr.s_addr = *(int*)entry->h_addr_list[0];
+        }
+        else
+        {
+           /* Some error checking would be nice */
+           sin->sin_addr.s_addr = inet_addr(node);
+        }
+        sin->sin_port=0;
+        if (service) {
+                sin->sin_port=htons(atoi(service));
+        }
+
+        *res = malloc(sizeof(struct addrinfo));
+
+        (*res)->ai_family = AF_INET;
+        (*res)->ai_addrlen = sizeof(struct sockaddr_in);
+        (*res)->ai_addr = (struct sockaddr *)sin;
+
+        return 0;
+}
+
+void riscos_freeaddrinfo(struct addrinfo *res)
+{
+        free(res->ai_addr);
+        free(res);
+}
+
+#endif
+
 #ifdef NEED_WRITEV
 ssize_t writev(int fd, const struct iovec *vector, int count)
 {
