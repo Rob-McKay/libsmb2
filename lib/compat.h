@@ -221,10 +221,16 @@ struct sockaddr_storage {
 
 #ifdef __riscos
 
+#define NEED_BE64TOH
+//#define NEED_POLL
+
 #undef EFBIG
 #undef EOVERFLOW
 #include <sys/errno.h>
 #include <stdint.h>
+#ifndef ntohl
+#include <inetlib.h>
+#endif
 
 typedef uint32_t UWORD32;
 
@@ -251,7 +257,8 @@ struct pollfd {
 
 int poll(struct pollfd *fds, unsigned int nfds, int timo);
 
-int asprintf(char **strp, const char *fmt, ...);
+long long int be64toh(long long int x);
+long long int htobe64(long long int x);
 
 /* open-only flags */
 #define O_RDONLY        0x0000          /* open for reading only */

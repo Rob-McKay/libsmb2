@@ -17,6 +17,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "asprintf.h"
+
 #include <errno.h>
 #include <limits.h> /* for INT_MAX */
 #include <stdarg.h>
