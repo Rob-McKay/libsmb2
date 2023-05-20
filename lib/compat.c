@@ -18,6 +18,13 @@
 
 #include "compat.h"
 
+#ifdef __riscos
+#include <sys/types.h>
+#include <sys/time.h>
+#include <string.h>
+#include <socklib.h>
+#endif
+
 #ifdef ESP_PLATFORM
 
 #define NEED_READV
@@ -84,7 +91,7 @@ int getaddrinfo(const char *node, const char*service,
         sin->sin_port=0;
         if (service) {
                 sin->sin_port=htons(atoi(service));
-        } 
+        }
 
         *res = malloc(sizeof(struct addrinfo));
 
@@ -112,17 +119,17 @@ void freeaddrinfo(struct addrinfo *res)
 #define NEED_WRITEV
 #define NEED_POLL
 
-static unsigned long int next = 1; 
+static unsigned long int next = 1;
 
 int random(void)
-{ 
-    next = next * 1103515245 + 12345; 
-    return (unsigned int)(next/65536) % 32768; 
-} 
+{
+    next = next * 1103515245 + 12345;
+    return (unsigned int)(next/65536) % 32768;
+}
 
-void srandom(unsigned int seed) 
-{ 
-    next = seed; 
+void srandom(unsigned int seed)
+{
+    next = seed;
 }
 
 #include <thbase.h>
@@ -143,7 +150,7 @@ int asprintf(char **strp, const char *fmt, ...)
 {
         int len;
         char *str;
-        va_list args;        
+        va_list args;
 
         va_start(args, fmt);
         str = malloc(256);
@@ -196,7 +203,7 @@ int smb2_getaddrinfo(const char *node, const char*service,
         sin->sin_port=0;
         if (service) {
                 sin->sin_port=htons(atoi(service));
-        } 
+        }
 
         *res = malloc(sizeof(struct addrinfo));
 
@@ -326,7 +333,7 @@ int poll(struct pollfd *fds, unsigned int nfds, int timo)
                 if (fds[i].fd > maxfd) {
                         maxfd = fds[i].fd;
                 }
-        } 
+        }
 
         if(timo < 0) {
                 toptr = 0;

@@ -1,4 +1,3 @@
-/* -*-  mode:c; tab-width:8; c-basic-offset:8; indent-tabs-mode:nil;  -*- */
 /*
    Copyright (C) 2020 by Ronnie Sahlberg <ronniesahlberg@gmail.com>
 
@@ -222,7 +221,7 @@ struct sockaddr_storage {
 #ifdef __riscos
 
 #define NEED_BE64TOH
-//#define NEED_POLL
+#define NEED_POLL
 
 #undef EFBIG
 #undef EOVERFLOW
@@ -256,6 +255,7 @@ struct pollfd {
 };
 
 int poll(struct pollfd *fds, unsigned int nfds, int timo);
+
 
 long long int be64toh(long long int x);
 long long int htobe64(long long int x);

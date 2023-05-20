@@ -32,7 +32,8 @@ ModSqzflags = -o $@
 	@.o.smb2-cmd-query-info @.o.smb2-cmd-read @.o.smb2-cmd-session-setup @.o.smb2-cmd-set-info \
 	@.o.smb2-cmd-tree-connect @.o.smb2-cmd-tree-disconnect @.o.smb2-cmd-write @.o.smb2-data-file-info \
 	@.o.smb2-data-filesystem-info @.o.smb2-data-reparse-point @.o.smb2-data-security-descriptor \
-	@.o.smb2-share-enum @.o.smb2-signing @.o.smb3-seal @.o.socket @.o.sync @.o.timestamps @.o.unicode @.o.asprintf
+	@.o.smb2-share-enum @.o.smb2-signing @.o.smb3-seal @.o.socket @.o.sync @.o.timestamps @.o.unicode \
+	@.o.usha @.o.asprintf
 	libfile $(LibFileflags) @.o.aes @.o.aes128ccm @.o.alloc @.o.compat \
 	@.o.dcerpc @.o.dcerpc-lsa @.o.dcerpc-srvsvc @.o.errors @.o.hmac @.o.hmac-md5 @.o.init \
 	@.o.libsmb2 @.o.md4c @.o.md5 @.o.ntlmssp @.o.pdu @.o.sha224-256 \
@@ -42,7 +43,7 @@ ModSqzflags = -o $@
 	@.o.smb2-cmd-set-info @.o.smb2-cmd-tree-connect @.o.smb2-cmd-tree-disconnect @.o.smb2-cmd-write \
 	@.o.smb2-data-file-info @.o.smb2-data-filesystem-info @.o.smb2-data-reparse-point \
 	@.o.smb2-data-security-descriptor @.o.smb2-share-enum @.o.smb2-signing @.o.smb3-seal @.o.socket @.o.sync \
-	@.o.timestamps @.o.unicode @.o.asprintf
+	@.o.timestamps @.o.unicode @.o.usha @.o.asprintf
 
 @.o:
 	-cdir @.o
@@ -50,9 +51,8 @@ ModSqzflags = -o $@
 all: @.o @.libsmb2 @.o
 
 clean:
-	-remove @.o
+	-wipe @.o.* ~cf
 	-remove @.libsmb2
-        -cdir o
 
 
 
@@ -149,6 +149,8 @@ clean:
 @.o.timestamps:	@.lib.c.timestamps
 	${cc} ${CCflags} ${CAPPFLAGS} -o $@ $<
 @.o.unicode:	@.lib.c.unicode
+	${cc} ${CCflags} ${CAPPFLAGS} -o $@ $<
+@.o.usha:	@.lib.c.usha
 	${cc} ${CCflags} ${CAPPFLAGS} -o $@ $<
 
 @.o.asprintf: @.c.asprintf @.o
@@ -295,88 +297,6 @@ o.sha1:	TCPIPLibs:sys.h.types
 o.sha1:	TCPIPLibs:netinet.h.in
 o.sha1:	TCPIPLibs:h.unixlib
 o.sha1:	lib.h.sha-private
-o.aes:	lib.c.aes
-o.aes:	h.config
-o.aes:	TCPIPLibs:sys.h.types
-o.aes:	TCPIPLibs:sys.h.cdefs
-o.aes:	TCPIPLibs:machine.h.endian
-o.aes:	TCPIPLibs:machine.h.ansi
-o.aes:	TCPIPLibs:machine.h.types
-o.aes:	TCPIPLibs:h.inetlib
-o.aes:	TCPIPLibs:sys.h.types
-o.aes:	TCPIPLibs:netinet.h.in
-o.aes:	TCPIPLibs:h.unixlib
-o.aes:	lib.h.compat
-o.aes:	TCPIPLibs:sys.h.errno
-o.aes:	C:h.kernel
-o.aes:	TCPIPLibs:h.inetlib
-o.aes:	TCPIPLibs:sys.h.types
-o.aes:	TCPIPLibs:netinet.h.in
-o.aes:	lib.h.aes
-o.aes:	h.config
-o.aes128ccm:	lib.c.aes128ccm
-o.aes128ccm:	h.config
-o.aes128ccm:	TCPIPLibs:sys.h.types
-o.aes128ccm:	TCPIPLibs:sys.h.cdefs
-o.aes128ccm:	TCPIPLibs:machine.h.endian
-o.aes128ccm:	TCPIPLibs:machine.h.ansi
-o.aes128ccm:	TCPIPLibs:machine.h.types
-o.aes128ccm:	TCPIPLibs:h.inetlib
-o.aes128ccm:	TCPIPLibs:sys.h.types
-o.aes128ccm:	TCPIPLibs:netinet.h.in
-o.aes128ccm:	TCPIPLibs:h.unixlib
-o.aes128ccm:	TCPIPLibs:arpa.h.inet
-o.aes128ccm:	TCPIPLibs:sys.h.cdefs
-o.aes128ccm:	lib.h.compat
-o.aes128ccm:	TCPIPLibs:sys.h.errno
-o.aes128ccm:	C:h.kernel
-o.aes128ccm:	TCPIPLibs:h.inetlib
-o.aes128ccm:	TCPIPLibs:sys.h.types
-o.aes128ccm:	TCPIPLibs:netinet.h.in
-o.aes128ccm:	include.h.portable-endian
-o.aes128ccm:	TCPIPLibs:machine.h.endian
-o.aes128ccm:	lib.h.aes
-o.aes128ccm:	h.config
-o.alloc:	lib.c.alloc
-o.alloc:	h.config
-o.alloc:	TCPIPLibs:sys.h.types
-o.alloc:	TCPIPLibs:sys.h.cdefs
-o.alloc:	TCPIPLibs:machine.h.endian
-o.alloc:	TCPIPLibs:machine.h.ansi
-o.alloc:	TCPIPLibs:machine.h.types
-o.alloc:	TCPIPLibs:h.inetlib
-o.alloc:	TCPIPLibs:sys.h.types
-o.alloc:	TCPIPLibs:netinet.h.in
-o.alloc:	TCPIPLibs:h.unixlib
-o.alloc:	TCPIPLibs:sys.h.types
-o.alloc:	TCPIPLibs:h.unistd
-o.alloc:	TCPIPLibs:sys.h.cdefs
-o.alloc:	TCPIPLibs:sys.h.types
-o.alloc:	TCPIPLibs:sys.h.unistd
-o.alloc:	TCPIPLibs:sys.h._posix
-o.alloc:	lib.h.compat
-o.alloc:	TCPIPLibs:sys.h.errno
-o.alloc:	C:h.kernel
-o.alloc:	TCPIPLibs:h.inetlib
-o.alloc:	TCPIPLibs:sys.h.types
-o.alloc:	TCPIPLibs:netinet.h.in
-o.alloc:	include.smb2.h.smb2
-o.alloc:	include.smb2.h.smb2-errors
-o.alloc:	include.smb2.h.libsmb2
-o.alloc:	include.smb2.h.libsmb2-dcerpc-srvsvc
-o.alloc:	include.h.libsmb2-private
-o.alloc:	h.config
-o.compat:	lib.c.compat
-o.compat:	lib.h.compat
-o.compat:	TCPIPLibs:sys.h.errno
-o.compat:	C:h.kernel
-o.compat:	TCPIPLibs:h.inetlib
-o.compat:	TCPIPLibs:sys.h.types
-o.compat:	TCPIPLibs:sys.h.cdefs
-o.compat:	TCPIPLibs:machine.h.endian
-o.compat:	TCPIPLibs:machine.h.ansi
-o.compat:	TCPIPLibs:machine.h.types
-o.compat:	TCPIPLibs:netinet.h.in
 o.dcerpc:	lib.c.dcerpc
 o.dcerpc:	h.config
 o.dcerpc:	TCPIPLibs:sys.h.types
@@ -1484,6 +1404,121 @@ o.unicode:	include.smb2.h.libsmb2
 o.unicode:	include.smb2.h.libsmb2-dcerpc-srvsvc
 o.unicode:	include.h.libsmb2-private
 o.unicode:	h.config
+o.usha:	lib.c.usha
+o.usha:	lib.h.compat
+o.usha:	TCPIPLibs:sys.h.errno
+o.usha:	C:h.kernel
+o.usha:	TCPIPLibs:h.inetlib
+o.usha:	TCPIPLibs:sys.h.types
+o.usha:	TCPIPLibs:sys.h.cdefs
+o.usha:	TCPIPLibs:machine.h.endian
+o.usha:	TCPIPLibs:machine.h.ansi
+o.usha:	TCPIPLibs:machine.h.types
+o.usha:	TCPIPLibs:netinet.h.in
+o.usha:	lib.h.sha
+o.usha:	h.config
+o.usha:	TCPIPLibs:sys.h.types
+o.usha:	TCPIPLibs:h.inetlib
+o.usha:	TCPIPLibs:sys.h.types
+o.usha:	TCPIPLibs:netinet.h.in
+o.usha:	TCPIPLibs:h.unixlib
+o.aes:	lib.c.aes
+o.aes:	h.config
+o.aes:	TCPIPLibs:sys.h.types
+o.aes:	TCPIPLibs:sys.h.cdefs
+o.aes:	TCPIPLibs:machine.h.endian
+o.aes:	TCPIPLibs:machine.h.ansi
+o.aes:	TCPIPLibs:machine.h.types
+o.aes:	TCPIPLibs:h.inetlib
+o.aes:	TCPIPLibs:sys.h.types
+o.aes:	TCPIPLibs:netinet.h.in
+o.aes:	TCPIPLibs:h.unixlib
+o.aes:	lib.h.compat
+o.aes:	TCPIPLibs:sys.h.errno
+o.aes:	C:h.kernel
+o.aes:	TCPIPLibs:h.inetlib
+o.aes:	TCPIPLibs:sys.h.types
+o.aes:	TCPIPLibs:netinet.h.in
+o.aes:	lib.h.aes
+o.aes:	h.config
+o.aes128ccm:	lib.c.aes128ccm
+o.aes128ccm:	h.config
+o.aes128ccm:	TCPIPLibs:sys.h.types
+o.aes128ccm:	TCPIPLibs:sys.h.cdefs
+o.aes128ccm:	TCPIPLibs:machine.h.endian
+o.aes128ccm:	TCPIPLibs:machine.h.ansi
+o.aes128ccm:	TCPIPLibs:machine.h.types
+o.aes128ccm:	TCPIPLibs:h.inetlib
+o.aes128ccm:	TCPIPLibs:sys.h.types
+o.aes128ccm:	TCPIPLibs:netinet.h.in
+o.aes128ccm:	TCPIPLibs:h.unixlib
+o.aes128ccm:	TCPIPLibs:arpa.h.inet
+o.aes128ccm:	TCPIPLibs:sys.h.cdefs
+o.aes128ccm:	lib.h.compat
+o.aes128ccm:	TCPIPLibs:sys.h.errno
+o.aes128ccm:	C:h.kernel
+o.aes128ccm:	TCPIPLibs:h.inetlib
+o.aes128ccm:	TCPIPLibs:sys.h.types
+o.aes128ccm:	TCPIPLibs:netinet.h.in
+o.aes128ccm:	include.h.portable-endian
+o.aes128ccm:	TCPIPLibs:machine.h.endian
+o.aes128ccm:	lib.h.aes
+o.aes128ccm:	h.config
+o.alloc:	lib.c.alloc
+o.alloc:	h.config
+o.alloc:	TCPIPLibs:sys.h.types
+o.alloc:	TCPIPLibs:sys.h.cdefs
+o.alloc:	TCPIPLibs:machine.h.endian
+o.alloc:	TCPIPLibs:machine.h.ansi
+o.alloc:	TCPIPLibs:machine.h.types
+o.alloc:	TCPIPLibs:h.inetlib
+o.alloc:	TCPIPLibs:sys.h.types
+o.alloc:	TCPIPLibs:netinet.h.in
+o.alloc:	TCPIPLibs:h.unixlib
+o.alloc:	TCPIPLibs:sys.h.types
+o.alloc:	TCPIPLibs:h.unistd
+o.alloc:	TCPIPLibs:sys.h.cdefs
+o.alloc:	TCPIPLibs:sys.h.types
+o.alloc:	TCPIPLibs:sys.h.unistd
+o.alloc:	TCPIPLibs:sys.h._posix
+o.alloc:	lib.h.compat
+o.alloc:	TCPIPLibs:sys.h.errno
+o.alloc:	C:h.kernel
+o.alloc:	TCPIPLibs:h.inetlib
+o.alloc:	TCPIPLibs:sys.h.types
+o.alloc:	TCPIPLibs:netinet.h.in
+o.alloc:	include.smb2.h.smb2
+o.alloc:	include.smb2.h.smb2-errors
+o.alloc:	include.smb2.h.libsmb2
+o.alloc:	include.smb2.h.libsmb2-dcerpc-srvsvc
+o.alloc:	include.h.libsmb2-private
+o.alloc:	h.config
+o.compat:	lib.c.compat
+o.compat:	lib.h.compat
+o.compat:	TCPIPLibs:sys.h.errno
+o.compat:	C:h.kernel
+o.compat:	TCPIPLibs:h.inetlib
+o.compat:	TCPIPLibs:sys.h.types
+o.compat:	TCPIPLibs:sys.h.cdefs
+o.compat:	TCPIPLibs:machine.h.endian
+o.compat:	TCPIPLibs:machine.h.ansi
+o.compat:	TCPIPLibs:machine.h.types
+o.compat:	TCPIPLibs:netinet.h.in
+o.compat:	TCPIPLibs:sys.h.types
+o.compat:	TCPIPLibs:sys.h.time
+o.compat:	TCPIPLibs:sys.h.types
+o.compat:	TCPIPLibs:sys.h.cdefs
+o.compat:	TCPIPLibs:h.socklib
+o.compat:	TCPIPLibs:sys.h.types
+o.compat:	TCPIPLibs:sys.h.socket
+o.compat:	TCPIPLibs:sys.h.cdefs
+o.compat:	TCPIPLibs:sys.h.stat
+o.compat:	TCPIPLibs:sys.h.time
+o.compat:	TCPIPLibs:sys.h.cdefs
+o.compat:	TCPIPLibs:sys.h.time
+o.compat:	TCPIPLibs:sys.h.uio
+o.compat:	TCPIPLibs:sys.h.cdefs
+o.compat:	C:h.kernel
 o.asprintf:	c.asprintf
 o.asprintf:	h.asprintf
 o.asprintf:	TCPIPLibs:sys.h.errno
