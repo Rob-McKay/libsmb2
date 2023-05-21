@@ -980,6 +980,22 @@ static void interleave_addrinfo(struct addrinfo *base)
         }
 }
 
+static void set_ai_port(struct addrinfo *ai, short port_no)
+{
+        switch (ai->ai_family)
+        {
+		case AF_INET:
+			((struct sockaddr_in *)(void *)ai->ai_addr)->sin_port = port_no;
+			break;
+#ifdef AF_INET6
+		case AF_INET6:
+			((struct sockaddr_in6 *)(void *)ai->ai_addr)->sin6_port = port_no;
+			break;
+#endif
+        }
+}
+
+
 int
 smb2_connect_async(struct smb2_context *smb2, const char *server,
                    smb2_command_cb cb, void *private_data)
@@ -1030,58 +1046,66 @@ smb2_connect_async(struct smb2_context *smb2, const char *server,
         /* is it a hostname ? */
         err = getaddrinfo(host, port, NULL, &smb2->addrinfos);
         if (err != 0) {
-           struct hostent *entry = gethostbyname(host);
-           if (entry!= NULL) {
-              printf("Found entry %d.%d.%d.%d\r\n", entry->h_addr_list[0][0], entry->h_addr_list[0][1], entry->h_addr_list[0][2], entry->h_addr_list[0][3]);
-           }
-           struct servent *serv = getservbyname(port, NULL);
+                err = getaddrinfo(host, NULL, NULL, &smb2->addrinfos);
+                if (err != 0) {
 
 #ifdef _WINDOWS
-                if (err == WSANOTINITIALISED)
-                {
-                        smb2_set_error(smb2, "Winsock was not initialized. "
-                                "Please call WSAStartup().");
-                        return -WSANOTINITIALISED;
-                }
-                else
+                        if (err == WSANOTINITIALISED)
+                        {
+                                free(addr);
+                                smb2_set_error(smb2, "Winsock was not initialized. "
+                                        "Please call WSAStartup().");
+                                return -WSANOTINITIALISED;
+                        }
+                        else
 #endif
-                {
-                     if (entry != NULL && serv == NULL) {
-                        smb2_set_error(smb2, "Invalid port:%s  "
-                        "Cannot resolve into IPv4/v6.", port);
-                  }
-                  else
-                  {
-                        smb2_set_error(smb2, "Invalid address:%s  "
-                        "Can not resolv into IPv4/v6.", server);
-                  }
-                }
+                        {
+                                struct hostent *entry = gethostbyname(host);
+                                struct servent *serv = getservbyname(port, NULL);
 
-                free(addr);
+                                if (entry != NULL && serv == NULL) {
+                                        smb2_set_error(smb2, "Invalid port:%s  "
+                                        "Cannot resolve into IPv4/v6.", port);
+                                }
+                                else
+                                {
+                                        smb2_set_error(smb2, "Invalid address:%s  "
+                                        "Cannot resolve IPv4/v6 address.", server);
+                                }
+                        }
+                        free(addr);
 
-                switch (err) {
-                    case EAI_AGAIN:
-                        return -EAGAIN;
-                    case EAI_NONAME:
+                        switch (err) {
+                        case EAI_AGAIN:
+                                return -EAGAIN;
+                        case EAI_NONAME:
 #ifdef EAI_NODATA
 #if EAI_NODATA != EAI_NONAME /* Equal in MSCV */
-                    case EAI_NODATA:
+                            case EAI_NODATA:
 #endif
 #endif
-                    case EAI_SERVICE:
-                    case EAI_FAIL:
+                        case EAI_SERVICE:
+                        case EAI_FAIL:
 #ifdef EAI_ADDRFAMILY /* Not available in MSVC */
-                    case EAI_ADDRFAMILY:
+                        case EAI_ADDRFAMILY:
 #endif
-                        return -EIO;
-                    case EAI_MEMORY:
-                        return -ENOMEM;
+                                return -EIO;
+                        case EAI_MEMORY:
+                                return -ENOMEM;
 #ifdef EAI_SYSTEM /* Not available in MSVC */
-                    case EAI_SYSTEM:
-                        return -errno;
+                        case EAI_SYSTEM:
+                                return -errno;
 #endif
-                    default:
-                        return -EINVAL;
+                        default:
+                                return -EINVAL;
+                        }
+                }
+                else {
+                        int port_no = atoi(port);
+                        for (ai = smb2->addrinfos; ai != NULL; ai = ai->ai_next)
+                        {
+                                set_ai_port((struct addrinfo *)ai, ntohs(port_no));
+                        }
                 }
         }
         free(addr);
