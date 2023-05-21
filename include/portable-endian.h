@@ -36,6 +36,7 @@
 #   define htole32(x) (x)
 #   define le32toh(x) (x)
 
+#   define htobe64(x) be64toh(x)
 #   define htole64(x) (x)
 #   define le64toh(x) (x)
 

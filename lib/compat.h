@@ -268,7 +268,6 @@ int poll(struct pollfd *fds, unsigned int nfds, int timo);
 
 
 long long int be64toh(long long int x);
-long long int htobe64(long long int x);
 
 /* open-only flags */
 #define O_RDONLY        0x0000          /* open for reading only */
