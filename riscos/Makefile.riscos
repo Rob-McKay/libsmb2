@@ -1,4 +1,18 @@
-# Project:   libsmb2
+# Makefile for the libsmb2 library files for RISC OS
+#
+# Copyright 2023 Rob McKay
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cc = CC
 
@@ -40,17 +54,17 @@ ModObjects = $(addprefix @.oz., $(Sources))
 
 
 # Final targets:
-@.libsmb2:	$(ObjectFiles)
-	@@echo Sources = ${Sources}
-	@@echo ObjectFiles = $(ObjectFiles)
+@.libsmb2_c:	$(ObjectFiles)
 	libfile $(LibFileflags) $(ObjectFiles)
 
 @.libsmb2_m:	$(ModObjects)
 	libfile $(LibFileflags) $(ModObjects)
 
 
-all: @.libsmb2 @.libsmb2_m
+all: @.libsmb2_c @.libsmb2_m
 
 clean:
 	-wipe @.o.* ~cfq
-	-remove @.libsmb2
+	-remove @.libsmb2_c
+	-wipe @.oz.* ~cfq
+	-remove @.libsmb2_m
