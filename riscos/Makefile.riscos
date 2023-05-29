@@ -46,7 +46,7 @@ ModObjects = $(addprefix @.oz., $(Sources))
 
 # C source files -> object files
 .c.o:;          ${cc} ${CCflags} ${CAPPFLAGS} -o $@ $<
-.c.oz:;         ${cc} ${CCflags} ${CMODFLAGS} -zM -o $@ $<
+.c.oz:;         ${cc} ${CCflags} ${CMODFLAGS} -zM -zps1 -o $@ $<
 
 # Assembler source files -> object files
 .s.o:;          ${as} ${ASFLAGS} -o $@ $<
