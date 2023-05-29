@@ -1,1 +1,2 @@
-amu -f <Obey$Dir>.Makefile/riscos clean all -Desktop
+dir <Obey$Dir>
+amu -f Makefile/riscos clean
