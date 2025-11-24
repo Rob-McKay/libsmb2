@@ -7,21 +7,35 @@
 #ifndef PORTABLE_ENDIAN_H__
 #define PORTABLE_ENDIAN_H__
 
-#if (defined(_WIN16) || defined(_WIN32) || defined(_WIN64)) && !defined(__WINDOWS__)
-
-#	define __WINDOWS__
-
+#if (defined(_WIN16) || defined(_WIN32) || defined(_WIN64)) && !defined(__WINDOWS__) && !defined(_XBOX)
+#define __WINDOWS__
 #endif
 
-#if defined(ESP_PLATFORM)
+#if defined(__PS2__) || defined(PICO_PLATFORM)
 
-// These 4 #defines may be needed with older esp-idf environments
-//#       define _LITTLE_ENDIAN LITTLE_ENDIAN
-//#       define __bswap16     __bswap_16
-//#       define __bswap32     __bswap_32
-//#       define __bswap64     __bswap_64
+#ifndef _LITTLE_ENDIAN
+#define _LITTLE_ENDIAN LITTLE_ENDIAN
+#endif
+#if defined(_EE) || defined(PICO_PLATFORM)
+#include <machine/endian.h>
+#ifdef PICO_PLATFORM
+#include "lwip/def.h"
+#endif
+#endif
 
-#	include <endian.h>
+#define be16toh(x) PP_NTOHS(x)
+#define htobe16(x) PP_HTONS(x)
+#define htole16(x) (x)
+#define le16toh(x) (x)
+
+#define be32toh(x) PP_NTOHL(x)
+#define htobe32(x) PP_HTONL(x)
+#define htole32(x) (x)
+#define le32toh(x) (x)
+
+#define htobe64(x) be64toh(x)
+#define htole64(x) (x)
+#define le64toh(x) (x)
 
 #elif defined(__riscos)
 #include <machine/endian.h>
@@ -42,176 +56,341 @@
 
 #elif defined(PICO_PLATFORM)
 
-#   include <machine/endian.h>
-#   include "lwip/def.h"
+#elif defined(__DREAMCAST__)
 
-#   define be16toh(x) PP_NTOHS(x)
-#   define htobe16(x) PP_HTONS(x)
-#   define htole16(x) (x)
-#   define le16toh(x) (x)
+#include <machine/endian.h>
 
-#   define be32toh(x) PP_NTOHL(x)
-#   define htobe32(x) PP_HTONL(x)
-#   define htole32(x) (x)
-#   define le32toh(x) (x)
+#define be16toh(x) __builtin_bswap16(x)
+#define htobe16(x) __builtin_bswap16(x)
+#define htole16(x) (x)
+#define le16toh(x) (x)
 
-#   define htobe64(x) be64toh(x)
-#   define htole64(x) (x)
-#   define le64toh(x) (x)
+#define be32toh(x) __builtin_bswap32(x)
+#define htobe32(x) __builtin_bswap32(x)
+#define htole32(x) (x)
+#define le32toh(x) (x)
 
-#elif defined(PS2_IOP_PLATFORM)
+#define be64toh(x) __builtin_bswap64(x)
+#define htobe64(x) __builtin_bswap64(x)
+#define htole64(x) (x)
+#define le64toh(x) (x)
 
-#	include <tcpip.h>
+#elif defined(__linux__) || defined(__CYGWIN__) || defined(ESP_PLATFORM) || defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__GNU__)
 
-#       define _LITTLE_ENDIAN LITTLE_ENDIAN
+#if defined(__linux__) || defined(__CYGWIN__) || defined(PS4_PLATFORM) || defined(ESP_PLATFORM) || defined(__GNU__)
+#include <endian.h>
+/* Include byteswap.h on linux since it might not be automatically included in some cases (e.g. alpine / musl) */
+#if defined(__linux__) || defined(__GLIBC__)
+#include <byteswap.h>
+#endif
+#else
+#include <sys/endian.h>
+#endif
 
-#   define be16toh(x) PP_NTOHS(x)
-#   define htobe16(x) PP_HTONS(x)
-#   define htole16(x) (x)
-#   define le16toh(x) (x)
+/* These 4 #defines may be needed with older esp-idf environments */
+#ifndef _LITTLE_ENDIAN
+#define _LITTLE_ENDIAN LITTLE_ENDIAN
+#endif
 
-#   define be32toh(x) PP_NTOHL(x)
-#   define htobe32(x) PP_HTONL(x)
-#   define htole32(x) (x)
-#   define le32toh(x) (x)
+#ifndef __bswap16
+#define __bswap16 __bswap_16
+#endif
 
-#   define htobe64(x) be64toh(x)
-#   define htole64(x) (x)
-#   define le64toh(x) (x)
+#ifndef __bswap32
+#define __bswap32 __bswap_32
+#endif
 
-#elif defined(PS2_EE_PLATFORM)
+#ifndef __bswap64
+#define __bswap64 __bswap_64
+#endif
 
-#       ifndef _LITTLE_ENDIAN
-#       define _LITTLE_ENDIAN LITTLE_ENDIAN
-#       endif
-#	include <machine/endian.h>
-#	include <tcpip.h>
+#ifndef be16toh
+#define be16toh(x) betoh16(x)
+#endif
 
-#   define be16toh(x) PP_NTOHS(x)
-#   define htobe16(x) PP_HTONS(x)
-#   define htole16(x) (x)
-#   define le16toh(x) (x)
+#ifndef le16toh
+#define le16toh(x) letoh16(x)
+#endif
 
-#   define be32toh(x) PP_NTOHL(x)
-#   define htobe32(x) PP_HTONL(x)
-#   define htole32(x) (x)
-#   define le32toh(x) (x)
+#ifndef be32toh
+#define be32toh(x) betoh32(x)
+#endif
 
-#   define htobe64(x) be64toh(x)
-#   define htole64(x) (x)
-#   define le64toh(x) (x)
+#ifndef le32toh
+#define le32toh(x) letoh32(x)
+#endif
 
-#elif defined(__linux__) || defined(__CYGWIN__)
+#ifndef be64toh
+#define be64toh(x) betoh64(x)
+#endif
 
-#	include <endian.h>
+#ifndef le64toh
+#define le64toh(x) letoh64(x)
+#endif
 
 #elif defined(__APPLE__)
 
-#	include <libkern/OSByteOrder.h>
+#include <libkern/OSByteOrder.h>
 
-#	define htobe16(x) OSSwapHostToBigInt16(x)
-#	define htole16(x) OSSwapHostToLittleInt16(x)
-#	define be16toh(x) OSSwapBigToHostInt16(x)
-#	define le16toh(x) OSSwapLittleToHostInt16(x)
+#define htobe16(x) OSSwapHostToBigInt16(x)
+#define htole16(x) OSSwapHostToLittleInt16(x)
+#define be16toh(x) OSSwapBigToHostInt16(x)
+#define le16toh(x) OSSwapLittleToHostInt16(x)
 
-#	define htobe32(x) OSSwapHostToBigInt32(x)
-#	define htole32(x) OSSwapHostToLittleInt32(x)
-#	define be32toh(x) OSSwapBigToHostInt32(x)
-#	define le32toh(x) OSSwapLittleToHostInt32(x)
+#define htobe32(x) OSSwapHostToBigInt32(x)
+#define htole32(x) OSSwapHostToLittleInt32(x)
+#define be32toh(x) OSSwapBigToHostInt32(x)
+#define le32toh(x) OSSwapLittleToHostInt32(x)
 
-#	define htobe64(x) OSSwapHostToBigInt64(x)
-#	define htole64(x) OSSwapHostToLittleInt64(x)
-#	define be64toh(x) OSSwapBigToHostInt64(x)
-#	define le64toh(x) OSSwapLittleToHostInt64(x)
+#define htobe64(x) OSSwapHostToBigInt64(x)
+#define htole64(x) OSSwapHostToLittleInt64(x)
+#define be64toh(x) OSSwapBigToHostInt64(x)
+#define le64toh(x) OSSwapLittleToHostInt64(x)
 
-#	define __BYTE_ORDER    BYTE_ORDER
-#	define __BIG_ENDIAN    BIG_ENDIAN
-#	define __LITTLE_ENDIAN LITTLE_ENDIAN
-#	define __PDP_ENDIAN    PDP_ENDIAN
+#define __BYTE_ORDER BYTE_ORDER
+#define __BIG_ENDIAN BIG_ENDIAN
+#define __LITTLE_ENDIAN LITTLE_ENDIAN
+#define __PDP_ENDIAN PDP_ENDIAN
 
-#elif defined(__OpenBSD__)
+#elif defined(PS3_PPU_PLATFORM) || defined(__WIIU__) || defined(__WII__) || defined(__GC__)
 
-#	include <sys/endian.h>
+#define htobe16(x) (x)
+#define htole16(x) __builtin_bswap16(x)
+#define be16toh(x) (x)
+#define le16toh(x) __builtin_bswap16(x)
 
-#elif defined(PS4_PLATFORM)
+#define htobe32(x) (x)
+#define htole32(x) __builtin_bswap32(x)
+#define be32toh(x) (x)
+#define le32toh(x) __builtin_bswap32(x)
 
-#	include <endian.h>
+#define htobe64(x) (x)
+#define htole64(x) __builtin_bswap64(x)
+#define be64toh(x) (x)
+#define le64toh(x) __builtin_bswap64(x)
 
-#elif defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
+#elif defined(__SWITCH__) || defined(__N3DS__) || defined(__NDS__)
 
-#	include <sys/endian.h>
+#include <machine/endian.h>
+#define htobe16(x) __bswap16(x)
+#define htole16(x) (x)
+#define be16toh(x) __bswap16(x)
+#define le16toh(x) (x)
 
-#	define be16toh(x) betoh16(x)
-#	define le16toh(x) letoh16(x)
+#define htobe32(x) __bswap32(x)
+#define htole32(x) (x)
+#define be32toh(x) __bswap32(x)
+#define le32toh(x) (x)
 
-#	define be32toh(x) betoh32(x)
-#	define le32toh(x) letoh32(x)
+#define htobe64(x) __bswap64(x)
+#define htole64(x) (x)
+#define be64toh(x) __bswap64(x)
+#define le64toh(x) (x)
 
-#	define be64toh(x) betoh64(x)
-#	define le64toh(x) letoh64(x)
+#elif defined(__WINDOWS__) || defined(_XBOX)
 
-#elif defined(PS3_PPU_PLATFORM)
+#ifdef _XBOX
+#include <xtl.h>
+#else
+#include <windows.h>
+#endif
 
-#   define htobe16(x) (x)
-#   define htole16(x) __builtin_bswap16(x)
-#   define be16toh(x) (x)
-#   define le16toh(x) __builtin_bswap16(x)
+#if defined(_MSC_VER)
+#include <stdlib.h>
 
-#   define htobe32(x) (x)
-#   define htole32(x) __builtin_bswap32(x)
-#   define be32toh(x) (x)
-#   define le32toh(x) __builtin_bswap32(x)
+#define htobe16(x) _byteswap_ushort(x)
+#define htole16(x) (x)
+#define be16toh(x) _byteswap_ushort(x)
+#define le16toh(x) (x)
 
-#   define htobe64(x) (x)
-#   define htole64(x) __builtin_bswap64(x)
-#   define be64toh(x) (x)
-#   define le64toh(x) __builtin_bswap64(x)
+#define htobe32(x) _byteswap_ulong(x)
+#define htole32(x) (x)
+#define be32toh(x) _byteswap_ulong(x)
+#define le32toh(x) (x)
 
-#elif defined(__WINDOWS__)
+#define htobe64(x) _byteswap_uint64(x)
+#define htole64(x) (x)
+#define be64toh(x) _byteswap_uint64(x)
+#define le64toh(x) (x)
 
-# include <windows.h>
+#ifndef __BYTE_ORDER
+#define __BYTE_ORDER BYTE_ORDER
+#endif
 
-# if defined(_MSC_VER)
-#   include <stdlib.h>
+#ifndef __BIG_ENDIAN
+#define __BIG_ENDIAN BIG_ENDIAN
+#endif
 
-#   define htobe16(x) _byteswap_ushort(x)
-#   define htole16(x) (x)
-#   define be16toh(x) _byteswap_ushort(x)
-#   define le16toh(x) (x)
+#ifndef __LITTLE_ENDIAN
+#define __LITTLE_ENDIAN LITTLE_ENDIAN
+#endif
 
-#   define htobe32(x) _byteswap_ulong(x)
-#   define htole32(x) (x)
-#   define be32toh(x) _byteswap_ulong(x)
-#   define le32toh(x) (x)
+#ifndef __PDP_ENDIAN
+#define __PDP_ENDIAN PDP_ENDIAN
+#endif
 
-#   define htobe64(x) _byteswap_uint64(x)
-#   define htole64(x) (x)
-#   define be64toh(x) _byteswap_uint64(x)
-#   define le64toh(x) (x)
+#elif defined(__GNUC__) || defined(__clang__)
 
-# elif defined(__GNUC__) || defined(__clang__)
+#define htobe16(x) __builtin_bswap16(x)
+#define htole16(x) (x)
+#define be16toh(x) __builtin_bswap16(x)
+#define le16toh(x) (x)
 
-#   define htobe16(x) __builtin_bswap16(x)
-#   define htole16(x) (x)
-#   define be16toh(x) __builtin_bswap16(x)
-#   define le16toh(x) (x)
+#define htobe32(x) __builtin_bswap32(x)
+#define htole32(x) (x)
+#define be32toh(x) __builtin_bswap32(x)
+#define le32toh(x) (x)
 
-#   define htobe32(x) __builtin_bswap32(x)
-#   define htole32(x) (x)
-#   define be32toh(x) __builtin_bswap32(x)
-#   define le32toh(x) (x)
-
-#   define htobe64(x) __builtin_bswap64(x)
-#   define htole64(x) (x)
-#   define be64toh(x) __builtin_bswap64(x)
-#   define le64toh(x) (x)
-
-#   else
-#     error platform not supported
-#   endif
+#define htobe64(x) __builtin_bswap64(x)
+#define htole64(x) (x)
+#define be64toh(x) __builtin_bswap64(x)
+#define le64toh(x) (x)
 
 #else
-#  error platform not supported
+#error platform not supported
+#endif
+
+#elif defined(__amigaos4__) || defined(__AMIGA__)
+
+#if defined(__NEWLIB__)
+#include <machine/endian.h>
+
+#ifndef __bswap16
+#define __bswap16(x) __builtin_bswap16(x)
+#endif
+
+#ifndef __bswap32
+#define __bswap32(x) __builtin_bswap32(x)
+#endif
+
+#ifndef __bswap64
+#define __bswap64(x) __builtin_bswap64(x)
+#endif
+
+#define htobe16(x) (x)
+#define htole16(x) __bswap16(x)
+#define be16toh(x) (x)
+#define le16toh(x) __bswap16(x)
+
+#define htobe32(x) (x)
+#define htole32(x) __bswap32(x)
+#define be32toh(x) (x)
+#define le32toh(x) __bswap32(x)
+
+#define htobe64(x) (x)
+#define htole64(x) __bswap64(x)
+#define be64toh(x) (x)
+#define le64toh(x) __bswap64(x)
+
+#elif defined(__GNUC__)
+
+#define htobe16(x) (x)
+#define htole16(x) __builtin_bswap16(x)
+#define be16toh(x) (x)
+#define le16toh(x) __builtin_bswap16(x)
+
+#define htobe32(x) (x)
+#define htole32(x) __builtin_bswap32(x)
+#define be32toh(x) (x)
+#define le32toh(x) __builtin_bswap32(x)
+
+#define htobe64(x) (x)
+#define htole64(x) __builtin_bswap64(x)
+#define be64toh(x) (x)
+#define le64toh(x) __builtin_bswap64(x)
+
+#else
+#error platform not supported
+#endif
+
+#elif defined(__AROS__)
+
+#include <endian.h>
+
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 8))
+
+#define __bswap16(x) __builtin_bswap16(x)
+#define __bswap32(x) __builtin_bswap32(x)
+#define __bswap64(x) __builtin_bswap64(x)
+
+#else
+
+#define __bswap16(x) ((((uint16_t)(x) & 0xFF00) >> 8) | \
+                         (((uint16_t)(x) & 0x00FF) << 8))
+#define __bswap32(x) ((((uint32_t)(x) & 0xFF000000) >> 24) | \
+                         (((uint32_t)(x) & 0x00FF0000) >>  8) | \
+                         (((uint32_t)(x) & 0x0000FF00) <<  8) | \
+                         (((uint32_t)(x) & 0x000000FF) << 24))
+#define __bswap64(x) ((((uint64_t)(x) & 0xFF00000000000000) >> 56) | \
+                         (((uint64_t)(x) & 0x00FF000000000000) >> 40) | \
+                         (((uint64_t)(x) & 0x0000FF0000000000) >> 24) | \
+                         (((uint64_t)(x) & 0x000000FF00000000) >>  8) | \
+                         (((uint64_t)(x) & 0x00000000FF000000) <<  8) | \
+                         (((uint64_t)(x) & 0x0000000000FF0000) << 24) | \
+                         (((uint64_t)(x) & 0x000000000000FF00) << 40) | \
+                         (((uint64_t)(x) & 0x00000000000000FF) << 56))
+
+#endif
+
+#if _BYTE_ORDER == _LITTLE_ENDIAN
+
+#define htobe16(x) __bswap16(x)
+#define htole16(x) (x)
+#define be16toh(x) __bswap16(x)
+#define le16toh(x) (x)
+
+#define htobe32(x) __bswap32(x)
+#define htole32(x) (x)
+#define be32toh(x) __bswap32(x)
+#define le32toh(x) (x)
+
+#define htobe64(x) __bswap64(x)
+#define htole64(x) (x)
+#define be64toh(x) __bswap64(x)
+#define le64toh(x) (x)
+
+#else
+
+#define htobe16(x) (x)
+#define htole16(x) __bswap16(x)
+#define be16toh(x) (x)
+#define le16toh(x) __bswap16(x)
+
+#define htobe32(x) (x)
+#define htole32(x) __bswap32(x)
+#define be32toh(x) (x)
+#define le32toh(x) __bswap32(x)
+
+#define htobe64(x) (x)
+#define htole64(x) __bswap64(x)
+#define be64toh(x) (x)
+#define le64toh(x) __bswap64(x)
+
+#endif
+
+#elif defined(__GNUC__) || defined(__clang__)
+
+#ifdef __vita__
+#include <machine/endian.h>
+#endif
+
+#define htobe16(x) __builtin_bswap16(x)
+#define htole16(x) (x)
+#define be16toh(x) __builtin_bswap16(x)
+#define le16toh(x) (x)
+
+#define htobe32(x) __builtin_bswap32(x)
+#define htole32(x) (x)
+#define be32toh(x) __builtin_bswap32(x)
+#define le32toh(x) (x)
+
+#define htobe64(x) __builtin_bswap64(x)
+#define htole64(x) (x)
+#define be64toh(x) __builtin_bswap64(x)
+#define le64toh(x) (x)
+
+#else
+#error platform not supported
 #endif
 
 #endif

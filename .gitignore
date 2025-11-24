@@ -18,13 +18,17 @@ autom4te.cache
 build/
 compile
 config.guess
-config.h
 config.h.in
 config.h.in~
 config.log
 config.status
 config.sub
 configure
+config.guess~
+config.sub~
+configure~
+install-sh~
+
 depcomp
 install-sh
 m4/
@@ -33,3 +37,5 @@ stamp-h1
 libsmb2.pc
 libtool
 ltmain.sh
+lib/ps2/imports.c
+*.bak
