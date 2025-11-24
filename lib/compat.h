@@ -1,4 +1,3 @@
-/* -*-  mode:c; tab-width:8; c-basic-offset:8; indent-tabs-mode:nil;  -*- */
 /*
    Copyright (C) 2020 by Ronnie Sahlberg <ronniesahlberg@gmail.com>
 
@@ -746,6 +745,45 @@ s32 getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optl
 #define listen net_listen
 #define bind net_bind
 #endif
+#ifdef __riscos
+
+#define NEED_BE64TOH
+#define NEED_POLL
+
+#undef EFBIG
+#undef EOVERFLOW
+#include <sys/errno.h>
+#include <stdint.h>
+#ifndef ntohl
+#include <inetlib.h>
+#endif
+
+typedef uint32_t UWORD32;
+
+//#define getaddrinfo(add, port, hints, res) riscos_getaddrinfo(add, port, hints, res)
+//#define freeaddrinfo(res) riscos_freeaddrinfo(res)
+
+//int riscos_getaddrinfo(const char *node, const char*service,
+//                const struct addrinfo *hints,
+//                struct addrinfo **res);
+
+//void riscos_freeaddrinfo(struct addrinfo *res);
+
+
+long long int be64toh(long long int x);
+
+int asprintf(char **strp, const char *fmt, ...);
+
+#define getlogin_r(a,b) ENXIO
+
+#define srandom srand
+#define random rand
+
+#define POLLIN      0x0001    /* There is data to read */
+#define POLLPRI     0x0002    /* There is urgent data to read */
+#define POLLOUT     0x0004    /* Writing now will not block */
+#define POLLERR     0x0008    /* Error condition */
+#define POLLHUP     0x0010    /* Hung up */
 
 struct pollfd {
         int fd;
@@ -755,6 +793,28 @@ struct pollfd {
 
 int poll(struct pollfd *fds, unsigned int nfds, int timo);
 
+
+long long int be64toh(long long int x);
+
+/* open-only flags */
+#define O_RDONLY        0x0000          /* open for reading only */
+#define O_WRONLY        0x0001          /* open for writing only */
+#define O_RDWR          0x0002          /* open for reading and writing */
+#define O_ACCMODE       0x0003          /* mask for above modes */
+
+#define O_SHLOCK        0x00000010      /* open with shared file lock */
+#define O_EXLOCK        0x00000020      /* open with exclusive file lock */
+#define O_NOFOLLOW      0x00000100      /* don't follow symlinks */
+#define O_CREAT         0x00000200      /* create if nonexistant */
+#define O_TRUNC         0x00000400      /* truncate to zero length */
+#define O_EXCL          0x00000800      /* error if already exists */
+
+#define ENODATA         96              /* No message available on STREAM */
+
+
+#endif /* __riscos */
+
+  
 #endif
 
 #endif

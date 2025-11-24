@@ -79,6 +79,7 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#endif
 
 #ifdef HAVE_SYS_FCNTL_H
 #include <sys/fcntl.h>

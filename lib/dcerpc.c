@@ -67,6 +67,7 @@
 #include "libsmb2-raw.h"
 #include "libsmb2-private.h"
 
+#if !defined __riscos
 #define container_of(ptr, type, member) ({                      \
         const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
         (type *)(void *)( (char *)__mptr - offsetof(type,member) );})
@@ -173,7 +174,7 @@ struct dcerpc_request_pdu {
          * field is non-zero */
       /*  dcerpc_uuid_t  object;              24:16 object UID */
 
-      /* stub data, 8-octet aligned 
+      /* stub data, 8-octet aligned
                    .
                    .
                    .                 */
@@ -184,7 +185,7 @@ struct dcerpc_response_pdu {
         uint16_t context_id;
         uint8_t cancel_count;
         uint8_t reserved;
-      /* stub data, 8-octet aligned 
+      /* stub data, 8-octet aligned
                    .
                    .
                    .                 */
@@ -764,7 +765,7 @@ dcerpc_encode_ptr(struct dcerpc_context *dce, struct dcerpc_pdu *pdu,
                         }
                         goto out;
                 }
-                
+
                 pdu->ptr_id++;
                 val = pdu->ptr_id;
                 if (dcerpc_uint3264_coder(dce, pdu, iov, offset, &val)) {
@@ -866,7 +867,7 @@ dcerpc_decode_ptr(struct dcerpc_context *dce, struct dcerpc_pdu *pdu,
                 if (p == 0 || ptr == NULL) {
                         return 0;
                 }
-                
+
                 if (pdu->top_level) {
                         pdu->top_level = 0;
                         if (dcerpc_do_coder(dce, pdu, iov, offset, ptr, coder)) {
@@ -1369,7 +1370,7 @@ dcerpc_response_coder(struct dcerpc_context *ctx,
                       struct dcerpc_response_pdu *rsp,
                       struct smb2_iovec *iov, int *offset)
 {
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(__riscos)
         struct dcerpc_pdu *pdu = container_of(rsp, struct dcerpc_pdu, rsp);
 #else
         const char* __mptr = (const char*)rsp;
@@ -1646,7 +1647,7 @@ dcerpc_call_async(struct dcerpc_context *dce,
                 return -ENOMEM;
         }
         smb2_queue_pdu(dce->smb2, smb2_pdu);
- 
+
         return 0;
 }
 
@@ -1823,7 +1824,7 @@ dcerpc_bind_async(struct dcerpc_context *dce, dcerpc_cb cb,
                 return -ENOMEM;
         }
         smb2_queue_pdu(dce->smb2, smb2_pdu);
- 
+
         return 0;
 }
 
@@ -1841,7 +1842,7 @@ smb2_open_cb(struct smb2_context *smb2, int status,
                 free(data);
                 return;
         }
-        
+
         memcpy(dce->file_id, rep->file_id, SMB2_FD_SIZE);
 
         status = dcerpc_bind_async(dce, dcerpc_bind_cb, data);

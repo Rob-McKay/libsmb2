@@ -187,8 +187,8 @@ struct smb2_context {
         uint8_t *session_key;
         uint8_t session_key_size;
 
-        uint8_t seal:1;
-        uint8_t sign:1;
+        bool seal:1;
+        bool sign:1;
         uint8_t signing_key[SMB2_KEY_SIZE];
         uint8_t serverin_key[SMB2_KEY_SIZE];
         uint8_t serverout_key[SMB2_KEY_SIZE];
@@ -326,7 +326,7 @@ struct smb2_pdu {
         uint8_t file_info_class;
 
         /* For encrypted PDUs */
-        uint8_t seal:1;
+        bool seal:1;
         uint32_t crypt_len;
         unsigned char *crypt;
         time_t timeout;
@@ -347,6 +347,16 @@ struct smb2dir {
         struct smb2_dirent_internal *current_entry;
         int index;
 };
+  
+/* Returns a string converted to UTF-16 format. Use free() to release
+ * the utf16 string.
+ */
+struct utf16 *utf8_to_utf16(const char *utf8);
+
+/* Returns a string converted to UTF8 format. Use free() to release
+ * the utf8 string.
+ */
+const char *utf16_to_utf8(const uint16_t *str, int len);
 
 
 #define smb2_is_server(ctx) ((ctx)->owning_server != NULL)

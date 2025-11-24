@@ -66,6 +66,7 @@
 #include <libsmb2.h>
 #include "libsmb2-private.h"
 
+#if !defined __riscos
 #define container_of(ptr, type, member) ({                      \
         const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
         (type *)(void *)( (char *)__mptr - offsetof(type,member) );})
@@ -112,7 +113,7 @@ smb2_alloc_data(struct smb2_context *smb2, void *memctx, size_t size)
                 return NULL;
         }
 
-#ifndef _MSC_VER
+#if !defined _MSC_VER && !defined __riscos
         hdr = (struct smb2_alloc_header *)(void *)container_of(memctx, struct smb2_alloc_header, buf);
 #else
         {
@@ -137,7 +138,7 @@ smb2_free_data(struct smb2_context *smb2, void *ptr)
                 return;
         }
 
-#ifndef _MSC_VER
+#if !defined _MSC_VER && !defined __riscos
         hdr = (struct smb2_alloc_header *)(void *)container_of(ptr, struct smb2_alloc_header, buf);
 #else
         {

@@ -236,7 +236,7 @@ smb2_write_to_socket(struct smb2_context *smb2)
                 if (pdu->seal) {
                         niov = 2;
                         spl = pdu->crypt_len;
-                        iov[1].iov_base = pdu->crypt;
+                        iov[1].iov_base = (void*)pdu->crypt;
                         iov[1].iov_len  = pdu->crypt_len;
                 } else {
                         /* Copy all the vectors from all PDUs in the
@@ -259,7 +259,7 @@ smb2_write_to_socket(struct smb2_context *smb2)
 
                 /* Add the SPL vector as the first vector */
                 tmp_spl = htobe32(spl);
-                iov[0].iov_base = &tmp_spl;
+                iov[0].iov_base = (void*)&tmp_spl;
                 iov[0].iov_len = SMB2_SPL_SIZE;
 
                 tmpiov = iov;
@@ -980,7 +980,11 @@ smb2_service_fd(struct smb2_context *smb2, t_socket fd, int revents)
 
         if (revents & POLLERR) {
                 int err = 0;
+                #if defined(BROKEN_GETSOCKOPT)
+                int err_size = sizeof(err);
+                #else
                 socklen_t err_size = sizeof(err);
+                #endif
 
                 if (!SMB2_VALID_SOCKET(smb2->fd) && smb2->next_addrinfo != NULL) {
                         /* Connecting fd failed, try to connect to the next addr */
@@ -1019,7 +1023,11 @@ smb2_service_fd(struct smb2_context *smb2, t_socket fd, int revents)
 
         if (!SMB2_VALID_SOCKET(smb2->fd) && revents & POLLOUT) {
                 int err = 0;
+                #if defined(BROKEN_GETSOCKOPT)
+                int err_size = sizeof(err);
+                #else
                 socklen_t err_size = sizeof(err);
+                #endif
 
                 if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *)&err, &err_size) != 0 || err != 0) {
                         if (err == 0) {
@@ -1276,6 +1284,22 @@ static void interleave_addrinfo(struct addrinfo *base)
         }
 }
 
+static void set_ai_port(struct addrinfo *ai, short port_no)
+{
+        switch (ai->ai_family)
+        {
+		case AF_INET:
+			((struct sockaddr_in *)(void *)ai->ai_addr)->sin_port = port_no;
+			break;
+#ifdef AF_INET6
+		case AF_INET6:
+			((struct sockaddr_in6 *)(void *)ai->ai_addr)->sin6_port = port_no;
+			break;
+#endif
+        }
+}
+
+
 int
 smb2_connect_async(struct smb2_context *smb2, const char *server,
                    smb2_command_cb cb, void *private_data)
@@ -1349,20 +1373,28 @@ smb2_connect_async(struct smb2_context *smb2, const char *server,
                     case EAI_NODATA:
 #endif
 #endif
-                    case EAI_SERVICE:
-                    case EAI_FAIL:
+                        case EAI_SERVICE:
+                        case EAI_FAIL:
 #ifdef EAI_ADDRFAMILY /* Not available in MSVC */
-                    case EAI_ADDRFAMILY:
+                        case EAI_ADDRFAMILY:
 #endif
-                        return -EIO;
-                    case EAI_MEMORY:
-                        return -ENOMEM;
+                                return -EIO;
+                        case EAI_MEMORY:
+                                return -ENOMEM;
 #ifdef EAI_SYSTEM /* Not available in MSVC */
-                    case EAI_SYSTEM:
-                        return -errno;
+                        case EAI_SYSTEM:
+                                return -errno;
 #endif
-                    default:
-                        return -EINVAL;
+                        default:
+                                return -EINVAL;
+                        }
+                }
+                else {
+                        int port_no = atoi(port);
+                        for (ai = smb2->addrinfos; ai != NULL; ai = ai->ai_next)
+                        {
+                                set_ai_port((struct addrinfo *)ai, ntohs(port_no));
+                        }
                 }
         }
         free(addr);

@@ -53,6 +53,13 @@ int gethostname(char *name, size_t len)
 #define login_num ENXIO
 #endif
 
+#ifdef __riscos
+#include <sys/types.h>
+#include <sys/time.h>
+#include <string.h>
+#include <socklib.h>
+#endif
+
 #ifdef ESP_PLATFORM
 
 #include <stdio.h>
@@ -90,7 +97,39 @@ struct MinList __filelist = { (struct MinNode *) &__filelist.mlh_Tail, NULL, (st
 #include <stdlib.h>
 #include <string.h>
 
-#endif
+int getaddrinfo(const char *node, const char*service,
+                const struct addrinfo *hints,
+                struct addrinfo **res)
+{
+        struct sockaddr_in *sin;
+        struct hostent *host;
+        int i, ip[4];
+
+        sin = malloc(sizeof(struct sockaddr_in));
+        sin->sin_len = sizeof(struct sockaddr_in);
+        sin->sin_family=AF_INET;
+
+        /* Some error checking would be nice */
+        if (sscanf(node, "%d.%d.%d.%d", ip, ip+1, ip+2, ip+3) == 4) {
+                for (i = 0; i < 4; i++) {
+                        ((char *)&sin->sin_addr.s_addr)[i] = ip[i];
+                }
+        } else {
+                host = gethostbyname(node);
+                if (host == NULL) {
+                        return -1;
+                }
+                if (host->h_addrtype != AF_INET) {
+                        return -2;
+                }
+                memcpy(&sin->sin_addr.s_addr, host->h_addr, 4);
+        }
+
+        sin->sin_port=0;
+        if (service) {
+                sin->sin_port=htons(atoi(service));
+        }
+}
 
 #ifdef PICO_PLATFORM
 
@@ -120,16 +159,28 @@ struct MinList __filelist = { (struct MinNode *) &__filelist.mlh_Tail, NULL, (st
 
 #define login_num ENXIO
 
+static unsigned long int next = 1;
+
+int random(void)
+{
+    next = next * 1103515245 + 12345;
+    return (unsigned int)(next/65536) % 32768;
+}
+
+void srandom(unsigned int seed)
+{
+    next = seed;
+}
+
 #ifdef _IOP
 #define getpid_num() 27
-
-static unsigned long int next = 1; 
 
 int gethostname(char *name, size_t len)
 {
         strncpy(name, "PS2", len);
         return 0;
 }
+#endif
 
 time_t time(time_t *tloc)
 {
@@ -146,7 +197,7 @@ int asprintf(char **strp, const char *fmt, ...)
 {
         int len;
         char *str;
-        va_list args;        
+        va_list args;
 
         va_start(args, fmt);
         str = malloc(256);
@@ -305,7 +356,7 @@ int smb2_getaddrinfo(const char *node, const char*service,
         sin->sin_port=0;
         if (service) {
                 sin->sin_port=htons(atoi(service));
-        } 
+        }
 
         *res = malloc(sizeof(struct addrinfo));
         memset(*res, 0, sizeof(struct addrinfo));
@@ -365,6 +416,58 @@ int getlogin_r(char *buf, size_t size)
 {
      return login_num;
 }
+#endif
+
+#if defined __riscos
+
+#undef getaddrinfo
+#undef freeaddrinfo
+
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <netdb.h>
+
+int riscos_getaddrinfo(const char *node, const char*service,
+                const struct addrinfo *hints,
+                struct addrinfo **res)
+{
+        struct sockaddr_in *sin;
+
+        sin = malloc(sizeof(struct sockaddr_in));
+        sin->sin_len = sizeof(struct sockaddr_in);
+        sin->sin_family=AF_INET;
+
+        struct hostent *entry = gethostbyname(node);
+        if (entry!= NULL) {
+          printf("Found entry %d.%d.%d.%d\r\n", entry->h_addr_list[0][0], entry->h_addr_list[0][1], entry->h_addr_list[0][2], entry->h_addr_list[0][3]);
+          sin->sin_addr.s_addr = *(int*)entry->h_addr_list[0];
+        }
+        else
+        {
+           /* Some error checking would be nice */
+           sin->sin_addr.s_addr = inet_addr(node);
+        }
+        sin->sin_port=0;
+        if (service) {
+                sin->sin_port=htons(atoi(service));
+        }
+
+        *res = malloc(sizeof(struct addrinfo));
+
+        (*res)->ai_family = AF_INET;
+        (*res)->ai_addrlen = sizeof(struct sockaddr_in);
+        (*res)->ai_addr = (struct sockaddr *)sin;
+
+        return 0;
+}
+
+void riscos_freeaddrinfo(struct addrinfo *res)
+{
+        free(res->ai_addr);
+        free(res);
+}
+
 #endif
 
 #ifdef NEED_WRITEV
