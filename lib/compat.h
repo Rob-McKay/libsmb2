@@ -841,6 +841,77 @@ int getlogin_r(char *buf, size_t size);
 #endif
 #endif /* __ANDROID__ */
 
+
+#ifdef __riscos
+
+#undef EFBIG
+#undef EOVERFLOW
+#include <stdint.h>
+#include <sys/errno.h>
+#include <sys/types.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <arpa/inet.h>
+#include <resolv.h>
+#include <socklib.h>
+
+typedef uint32_t UWORD32;
+
+long long int be64toh(long long int x);
+
+
+#define getlogin_r(a,b) ENXIO
+
+#define srandom srand
+#define random rand
+
+#define getaddrinfo riscos_getaddrinfo
+#define freeaddrinfo riscos_freeaddrinfo
+
+int riscos_getaddrinfo(const char *node, const char*service,
+                const struct addrinfo *hints,
+                struct addrinfo **res);
+
+void riscos_freeaddrinfo(struct addrinfo *res);
+
+
+#define NEED_POLL
+
+
+#define POLLIN      0x0001    /* There is data to read */
+#define POLLPRI     0x0002    /* There is urgent data to read */
+#define POLLOUT     0x0004    /* Writing now will not block */
+#define POLLERR     0x0008    /* Error condition */
+#define POLLHUP     0x0010    /* Hung up */
+
+struct pollfd {
+        int fd;
+        short events;
+        short revents;
+};
+
+int poll(struct pollfd *fds, unsigned int nfds, int timo);
+
+int asprintf(char **strp, const char *fmt, ...);
+
+#define ENODATA         96              /* No message available on STREAM */
+
+#ifndef O_CREAT
+#define O_CREAT 0x200
+#endif
+
+#ifndef O_TRUNC
+#define O_TRUNC 0x0400
+#endif
+
+#ifndef O_EXCL
+#define O_EXCL 0x0800
+#endif
+
+#endif /* __riscos */
+
+
 #ifndef O_RDONLY
 #define O_RDONLY	00000000
 #endif

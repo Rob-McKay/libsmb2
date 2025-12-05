@@ -109,7 +109,6 @@
 #include "smb3-seal.h"
 #include "libsmb2-private.h"
 #include "portable-endian.h"
-#include <errno.h>
 
 #define MAX_URL_SIZE 1024
 
@@ -285,8 +284,12 @@ smb2_write_to_socket(struct smb2_context *smb2)
                                 return 0;
                         }
                         smb2_set_error(smb2, "Error when writing to "
+#ifdef __riscos
+                               "socket :%d %s", errno, _inet_err());
+#else
                                        "socket :%d %s", errno,
                                        smb2_get_error(smb2));
+#endif
                         return -1;
                 }
 
@@ -381,13 +384,21 @@ read_more_data:
                         return -EAGAIN;
                 }
                 smb2_set_error(smb2, "Read from socket failed, "
+#ifdef __riscos
+                               "errno:%d (%s) Closing socket.", err, _inet_err());
+#else
                                "errno:%d. Closing socket.", err);
+#endif
                 return -1;
         }
         if (count == 0) {
                 /* remote side has closed the socket. */
                 smb2_set_error(smb2, "Read from socket failed, "
+#ifdef __riscos
+                               "(%s) remote closed connection.", _inet_err());
+#else
                                "remote closed connection.");
+#endif
                 return -1;
         }
         smb2->in.num_done += (size_t)count;
@@ -1001,7 +1012,11 @@ smb2_service_fd(struct smb2_context *smb2, t_socket fd, int revents)
                         }
                         smb2_set_error(smb2, "smb2_service: socket error "
                                         "%s(%d).",
+#ifdef __riscos
+                                        _inet_err(), err);
+#else
                                         strerror(err), err);
+#endif
                 } else {
                         smb2_set_error(smb2, "smb2_service: POLLERR, "
                                         "Unknown socket error.");
@@ -1045,7 +1060,11 @@ smb2_service_fd(struct smb2_context *smb2, t_socket fd, int revents)
                         } else {
                                 smb2_set_error(smb2, "smb2_service: socket error "
                                                 "%s(%d) while connecting.",
+#ifdef __riscos
+                                                _inet_err(), err);
+#else
                                                 strerror(err), err);
+#endif
                         }
 
                         if (smb2->connect_cb) {
@@ -1108,6 +1127,9 @@ set_nonblocking(t_socket fd)
 #elif (defined(__AMIGA__) || defined(__AROS__)) && !defined(__amigaos4__) && !defined(__amigaos3__)
         unsigned long opt = 0;
         IoctlSocket(fd, FIONBIO, (char *)&opt);
+#elif defined __riscos
+       // unsigned long opt = 1;
+       // socketioctl(fd, FIONBIO, &opt);
 #else
         unsigned v;
         v = fcntl(fd, F_GETFL, 0);
@@ -1151,6 +1173,7 @@ connect_async_ai(struct smb2_context *smb2, const struct addrinfo *ai, int *fd_o
         switch (ai->ai_family) {
         case AF_INET:
                 socksize = sizeof(struct sockaddr_in);
+/**/printf("(" __FILE__ ":%d) AF_INET socksize = %d (%d.%d.%d.%d)\n", __LINE__, socksize, ai->ai_addr->sa_data[2], ai->ai_addr->sa_data[3], ai->ai_addr->sa_data[4], ai->ai_addr->sa_data[5]);
                 memcpy(&ss, ai->ai_addr, socksize);
 #ifdef HAVE_SOCK_SIN_LEN
                 ((struct sockaddr_in *)&ss)->sin_len = socksize;
@@ -1160,6 +1183,7 @@ connect_async_ai(struct smb2_context *smb2, const struct addrinfo *ai, int *fd_o
         case AF_INET6:
 #if !defined(PICO_PLATFORM) || defined(LWIP_INETV6)
                 socksize = sizeof(struct sockaddr_in6);
+/**/printf("(" __FILE__ ":%d) AF_INET6 socksize = %d\n", __LINE__, socksize);
                 memcpy(&ss, ai->ai_addr, socksize);
 #ifdef HAVE_SOCK_SIN_LEN
                 ((struct sockaddr_in6 *)&ss)->sin6_len = socksize;
@@ -1179,7 +1203,11 @@ connect_async_ai(struct smb2_context *smb2, const struct addrinfo *ai, int *fd_o
         fd = socket(family, SOCK_STREAM, 0);
         if (!SMB2_VALID_SOCKET(fd)) {
                 smb2_set_error(smb2, "Failed to open smb2 socket. "
-                               "Errno:%s(%d).", strerror(errno), errno);
+#ifdef __riscos
+                               "%d - %s.", errno, _inet_err());
+#else
+                               ":%s(%d).", strerror(errno), errno);
+#endif
                 return -EIO;
         }
 
@@ -1212,7 +1240,11 @@ connect_async_ai(struct smb2_context *smb2, const struct addrinfo *ai, int *fd_o
                   && WSAGetLastError() != WSAEWOULDBLOCK) {
 #endif
                 smb2_set_error(smb2, "Connect failed with errno : "
+#ifdef __riscos
+                               "%d - %s.", errno, _inet_err());
+#else
                         "%s(%d)", strerror(errno), errno);
+#endif
                 close(fd);
                 return -EIO;
         }
@@ -1396,7 +1428,6 @@ smb2_connect_async(struct smb2_context *smb2, const char *server,
                                 set_ai_port((struct addrinfo *)ai, ntohs(port_no));
                         }
                 }
-        }
         free(addr);
 
         interleave_addrinfo(smb2->addrinfos);
